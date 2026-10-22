@@ -1,0 +1,212 @@
+# YARA Automation Configuration
+
+# Paths (relative to project root)
+paths:
+  rules_dir: "aggregated-rules"
+  samples_dir: "samples"
+  quarantine_dir: "quarantine"
+  reports_dir: "reports"
+  database: "yara_automation.db"
+
+# Target malware families - ONLY these families will be collected and processed
+# This filter applies to both YARA rules and malware samples
+target_families:
+  enabled: true  # Set to false to collect all families without filtering
+  families:
+    # Red Team / Pentesting Tools
+    - "CobaltStrike"
+    - "Mimikatz"
+    - "BloodHound"
+    - "Rubeus"
+    - "SeatBelt"
+    - "SharpHound"
+    - "Impacket"
+    - "Sliver"
+    - "Beacon"
+    - "BruteRatel"
+    - "Nimplant"
+    - "Meterpreter"
+    - "Covenant"
+    - "Unicorn"
+    - "Empire"
+    - "Metasploit"
+    - "Merlin"
+    - "Sharpshooter"
+    - "LaZagne"
+    - "Donut"
+    # Stealers
+    - "VeiledSignal"
+    - "Lumma"
+    - "RedLine"
+    - "Raccoon"
+    - "Vidar"
+    - "Stealc"
+    - "AgentTesla"
+    - "MassLogger"
+    - "Atomic"
+    # Ransomware
+    - "Qilin"
+    - "INC"
+    - "Bert"
+    - "Phobos"
+    - "LockBit"
+    - "BlackBasta"
+    - "ALPHV"
+    - "BlackCat"
+    # RATs
+    - "Quasar"
+    - "DarkComet"
+    - "Wshrat"
+    - "Orcus"
+    - "XWorm"
+    - "AsyncRAT"
+    - "zgRAT"
+    - "Arechclient2"
+    - "ValleyRAT"
+    - "XenoRAT"
+    - "NetSupport"
+    - "Gh0stRAT"
+    - "GravityRAT"
+    # Banking Trojans / Other
+    - "Grandoreiro"
+    - "BlackMoon"
+    - "Ramnit"
+    - "RaspberryRobin"
+    - "XRed"
+    - "WarmCookie"
+    - "Oyster"
+    - "Balada"
+    # Loaders / Crypters
+    - "HijackLoader"
+    - "DarkGate"
+    - "Emmenhtal"
+    - "PureCrypter"
+    - "Bumblebee"
+    # Botnets / Miners
+    - "Phorpiex"
+    - "RondoDox"
+    - "Sality"
+    - "Prometei"
+    - "XMRig"
+
+# YARA Rule Sources - GitHub repositories to pull rules from
+rule_sources:
+  - name: "Yara-Rules"
+    url: "https://github.com/Yara-Rules/rules.git"
+    branch: "master"
+    rules_path: ""  # Root of repo
+    enabled: true
+
+  - name: "signature-base"
+    url: "https://github.com/Neo23x0/signature-base.git"
+    branch: "master"
+    rules_path: "yara"
+    enabled: true
+
+  - name: "ReversingLabs"
+    url: "https://github.com/reversinglabs/reversinglabs-yara-rules.git"
+    branch: "develop"
+    rules_path: "yara"
+    enabled: true
+
+  - name: "Trellix-ATR"
+    url: "https://github.com/advanced-threat-research/Yara-Rules.git"
+    branch: "master"
+    rules_path: ""
+    enabled: true
+
+  - name: "bartblaze"
+    url: "https://github.com/bartblaze/Yara-rules.git"
+    branch: "master"
+    rules_path: "rules"
+    enabled: true
+
+# YARAhub rules download URL
+yarahub:
+  rules_url: "https://yaraify-api.abuse.ch/download/yaraify-rules.zip"
+  enabled: true
+
+# Malpedia settings (Fraunhofer FKIE)
+# Free access to TLP:WHITE rules, registration for TLP:GREEN
+malpedia:
+  api_url: "https://malpedia.caad.fkie.fraunhofer.de/api"
+  # TLP levels to fetch (can specify multiple)
+  # tlp_white: Public rules (no auth needed)
+  # tlp_green: More comprehensive rules (requires free registration API key)
+  tlp_levels:
+    - "tlp_white"   # Always available - no auth required
+    - "tlp_green"   # Requires MALPEDIA_API_KEY from free registration
+  # Also fetch auto-generated YARA-Signator rules (high quality, no auth needed)
+  include_auto_rules: true
+  # Filter rules to only include target families (uses target_families list)
+  filter_by_target_families: true
+  enabled: true
+
+# MalwareBazaar settings
+malwarebazaar:
+  api_url: "https://mb-api.abuse.ch/api/v1/"
+  # Use families from target_families section (set to true to auto-use target families)
+  use_target_families: true
+  # Max samples to fetch per family
+  max_samples_per_family: 50
+  enabled: true
+
+# YARAify settings
+yaraify:
+  api_url: "https://yaraify-api.abuse.ch/api/v1/"
+  max_results: 100
+  # Only download samples first_seen within the past N months (dynamic - always relative to current date)
+  past_months_filter: 3
+  enabled: true
+
+# Scheduler settings (intervals in seconds)
+scheduler:
+  rule_update_interval: 14400       # 4 hours
+  # Max YARA rules to process per scheduled hunt run (and initial fetch) - change to 500 for more coverage
+  max_rules_per_run: 50
+  yaraify_hunt_interval: 3600      # 1 hours
+  malwarebazaar_fetch_interval: 3600  # 1 hours
+  validation_interval: 18000        # 5 hours
+
+# False positive checker settings
+fp_checker:
+  # Directories or .zip files to scan for goodware/clean files
+  # Zip files: extracted to temp, scanned, then temp deleted (zip kept for future runs)
+  # Use a System32 zip path for Linux/cross-platform FP checking
+  goodware_paths:
+    - "C:\\Windows\\System32"
+    - "C:\\Program Files\\Common Files"
+    # - "/path/to/system32.zip"   # Example: zip path (extract -> scan -> delete temp, keep zip)
+  # FP rate threshold (rules matching more than this % of clean files are flagged)
+  fp_threshold: 0.01  # 1%
+  # Maximum files to scan per directory
+  max_files_per_dir: 1000
+  # File extensions to scan
+  extensions:
+    - ".exe"
+    - ".dll"
+    - ".sys"
+
+# Scanner settings
+scanner:
+  # Timeout for scanning a single file (seconds)
+  timeout: 30
+  # Maximum file size to scan (bytes)
+  max_file_size: 104857600  # 100 MB
+
+# Folder watcher settings
+watcher:
+  # Watch these directories for new files
+  watch_dirs:
+    - "samples"
+  # File patterns to watch
+  patterns:
+    - "*.exe"
+    - "*.dll"
+    - "*.bin"
+    - "*"
+  # Ignore patterns
+  ignore_patterns:
+    - "*.txt"
+    - "*.json"
+    - "*.log"

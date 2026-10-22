@@ -1,0 +1,28 @@
+# YARA Malware Hunting Automation - Dependencies
+
+# Core YARA scanning
+yara-python>=4.3.0
+
+# HTTP requests for API calls
+requests>=2.31.0
+
+# Environment variables
+python-dotenv>=1.0.0
+
+# File system monitoring
+watchdog>=3.0.0
+
+# Task scheduling
+APScheduler>=3.10.0
+
+# Configuration
+PyYAML>=6.0
+
+# Pretty CLI output
+rich>=13.0.0
+
+# AES-encrypted zip handling (YARAify downloads)
+pyzipper>=0.3.6
+
+# Git operations for cloning rule repos
+GitPython>=3.1.0
